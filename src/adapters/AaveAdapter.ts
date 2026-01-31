@@ -2,6 +2,8 @@ import { ethers } from 'ethers';
 import type { IProtocolAdapter } from './IProtocolAdapter';
 import type { LendingMarket, CollateralToken, Chain, BorrowAsset } from '../types';
 import { config } from '../config/env';
+import { withRetry } from '../utils/retry';
+import { getProvider } from '../utils/provider';
 
 const AAVE_DATA_PROVIDER_ABI = [
     'function getReserveConfigurationData(address asset) external view returns (uint256 decimals, uint256 ltv, uint256 liquidationThreshold, uint256 liquidationBonus, uint256 reserveFactor, bool usageAsCollateralEnabled, bool borrowingEnabled, bool stableBorrowRateEnabled, bool isActive, bool isFrozen)',
@@ -100,8 +102,8 @@ export class AaveAdapter implements IProtocolAdapter {
     }
 
     async fetchMarkets(collateral: CollateralToken, chain: Chain): Promise<LendingMarket[]> {
-        const config = this.chainConfigs.get(chain);
-        if (!config) {
+        const chainConfig = this.chainConfigs.get(chain);
+        if (!chainConfig) {
             console.warn(`Chain ${chain} not supported by Aave adapter`);
             return [];
         }
@@ -113,27 +115,30 @@ export class AaveAdapter implements IProtocolAdapter {
         }
 
         console.log(`📡 [Aave] Fetching real-time data for ${collateral} on ${chain}`);
-        console.log(`📡 [Aave] RPC URL: ${config.rpcUrl}`);
         console.log(`📡 [Aave] Collateral address: ${collateralAddress}`);
 
         try {
-            const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+            // Use the provider factory with fallback support
+            const provider = await getProvider(chain);
             const dataProvider = new ethers.Contract(
-                config.dataProviderAddress,
+                chainConfig.dataProviderAddress,
                 AAVE_DATA_PROVIDER_ABI,
                 provider
             );
 
             console.log(`📡 [Aave] Making RPC call to getReserveConfigurationData...`);
-            // Fetch collateral configuration
-            const collateralConfig = await dataProvider.getReserveConfigurationData(collateralAddress);
+            // Fetch collateral configuration with retry
+            const collateralConfig = await withRetry(
+                () => dataProvider.getReserveConfigurationData(collateralAddress),
+                { maxRetries: 3, baseDelay: 1000 }
+            );
 
             const maxLTV = Number(collateralConfig[1]) / 10000; // Convert basis points to decimal
             const liquidationThreshold = Number(collateralConfig[2]) / 10000;
 
             console.log(`✅ [Aave] Collateral config fetched - LTV: ${(maxLTV * 100).toFixed(2)}%, Liquidation: ${(liquidationThreshold * 100).toFixed(2)}%`);
 
-            // Fetch borrow assets data
+            // Fetch borrow assets data with retry built-in
             const borrowAssetsData = await this.fetchBorrowAssets(chain, provider, dataProvider);
 
             console.log(`✅ [Aave] Fetched ${borrowAssetsData.length} borrow assets for ${collateral} on ${chain}`);
@@ -168,9 +173,14 @@ export class AaveAdapter implements IProtocolAdapter {
         for (const asset of assets) {
             try {
                 console.log(`  📡 [Aave] Fetching ${asset.symbol} data...`);
-                const reserveData = await dataProvider.getReserveData(asset.address);
-                const tokenContract = new ethers.Contract(asset.address, ERC20_ABI, provider);
-                const decimals = await tokenContract.decimals();
+                
+                // Use retry for RPC calls
+                const [reserveData, decimals] = await withRetry(async () => {
+                    const data = await dataProvider.getReserveData(asset.address);
+                    const tokenContract = new ethers.Contract(asset.address, ERC20_ABI, provider);
+                    const dec = await tokenContract.decimals();
+                    return [data, dec];
+                }, { maxRetries: 2, baseDelay: 500 });
 
                 // availableLiquidity is in wei, convert to human-readable
                 const availableLiquidity = Number(ethers.formatUnits(reserveData[0], decimals));

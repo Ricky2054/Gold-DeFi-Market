@@ -2,6 +2,8 @@ import { ethers } from 'ethers';
 import type { IProtocolAdapter } from './IProtocolAdapter';
 import type { LendingMarket, CollateralToken, Chain, BorrowAsset } from '../types';
 import { config } from '../config/env';
+import { withRetry } from '../utils/retry';
+import { getProvider } from '../utils/provider';
 
 // Morpho Blue minimal ABI
 const MORPHO_ABI = [
@@ -83,8 +85,8 @@ export class MorphoAdapter implements IProtocolAdapter {
     }
 
     async fetchMarkets(collateral: CollateralToken, chain: Chain): Promise<LendingMarket[]> {
-        const config = this.chainConfigs.get(chain);
-        if (!config) {
+        const chainConfig = this.chainConfigs.get(chain);
+        if (!chainConfig) {
             console.warn(`Chain ${chain} not supported by Morpho adapter`);
             return [];
         }
@@ -92,8 +94,8 @@ export class MorphoAdapter implements IProtocolAdapter {
         console.log(`📡 [Morpho] Fetching real-time data for ${collateral} on ${chain}`);
 
         try {
-            const provider = new ethers.JsonRpcProvider(config.rpcUrl);
-            const morpho = new ethers.Contract(config.morphoAddress, MORPHO_ABI, provider);
+            const provider = await getProvider(chain);
+            const morpho = new ethers.Contract(chainConfig.morphoAddress, MORPHO_ABI, provider);
 
             // Filter markets by collateral and chain
             const relevantMarkets = Array.from(this.knownMarkets.values()).filter(
@@ -112,19 +114,21 @@ export class MorphoAdapter implements IProtocolAdapter {
             for (const marketInfo of relevantMarkets) {
                 try {
                     console.log(`  📡 [Morpho] Fetching market ${marketInfo.loanToken}...`);
-                    // Fetch market data
-                    const marketData = await morpho.market(marketInfo.id);
+                    
+                    // Fetch market data with retry
+                    const [marketData, decimals] = await withRetry(async () => {
+                        const data = await morpho.market(marketInfo.id);
+                        const loanTokenContract = new ethers.Contract(
+                            marketInfo.loanTokenAddress,
+                            ERC20_ABI,
+                            provider
+                        );
+                        const dec = await loanTokenContract.decimals();
+                        return [data, dec];
+                    }, { maxRetries: 3, baseDelay: 1000 });
 
                     const totalSupplyAssets = marketData[0];
                     const totalBorrowAssets = marketData[2];
-
-                    // Get loan token info
-                    const loanTokenContract = new ethers.Contract(
-                        marketInfo.loanTokenAddress,
-                        ERC20_ABI,
-                        provider
-                    );
-                    const decimals = await loanTokenContract.decimals();
 
                     // Calculate available liquidity
                     const availableLiquidity = Number(

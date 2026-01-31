@@ -2,6 +2,8 @@ import { ethers } from 'ethers';
 import type { IProtocolAdapter } from './IProtocolAdapter';
 import type { LendingMarket, CollateralToken, Chain, BorrowAsset } from '../types';
 import { config } from '../config/env';
+import { withRetry } from '../utils/retry';
+import { getProvider } from '../utils/provider';
 
 // Fluid Liquidity minimal ABI - for future production use
 // const FLUID_LIQUIDITY_ABI = [
@@ -89,14 +91,14 @@ export class FluidAdapter implements IProtocolAdapter {
     }
 
     async fetchMarkets(collateral: CollateralToken, chain: Chain): Promise<LendingMarket[]> {
-        const config = this.chainConfigs.get(chain);
-        if (!config) {
+        const chainConfig = this.chainConfigs.get(chain);
+        if (!chainConfig) {
             console.warn(`Chain ${chain} not supported by Fluid adapter`);
             return [];
         }
 
         try {
-            const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+            const provider = await getProvider(chain);
 
             // Filter vaults by collateral and chain
             const relevantVaults = Array.from(this.knownVaults.values()).filter(
@@ -112,14 +114,17 @@ export class FluidAdapter implements IProtocolAdapter {
 
             for (const vaultInfo of relevantVaults) {
                 try {
-                    // Get loan token info
-                    const loanTokenContract = new ethers.Contract(
-                        vaultInfo.loanTokenAddress,
-                        ERC20_ABI,
-                        provider
-                    );
-                    const decimals = await loanTokenContract.decimals();
-                    const balance = await loanTokenContract.balanceOf(vaultInfo.vaultAddress);
+                    // Get loan token info with retry
+                    const [decimals, balance] = await withRetry(async () => {
+                        const loanTokenContract = new ethers.Contract(
+                            vaultInfo.loanTokenAddress,
+                            ERC20_ABI,
+                            provider
+                        );
+                        const dec = await loanTokenContract.decimals();
+                        const bal = await loanTokenContract.balanceOf(vaultInfo.vaultAddress);
+                        return [dec, bal];
+                    }, { maxRetries: 3, baseDelay: 1000 });
 
                     // Available liquidity is the vault's balance of the loan token
                     const availableLiquidity = Number(ethers.formatUnits(balance, decimals));

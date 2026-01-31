@@ -3,6 +3,7 @@ import { AaveAdapter } from '../adapters/AaveAdapter';
 import { MorphoAdapter } from '../adapters/MorphoAdapter';
 import { FluidAdapter } from '../adapters/FluidAdapter';
 import type { LendingMarket, CollateralToken, Chain } from '../types';
+import { withRetry } from '../utils/retry';
 
 /**
  * Market Aggregator Service
@@ -21,24 +22,31 @@ export class MarketAggregator {
 
     /**
      * Fetch all markets for a specific collateral across all protocols
-     * Uses parallel fetching for optimal performance
+     * Uses parallel fetching with retry logic for optimal performance
      */
     async fetchAllMarkets(collateral: CollateralToken): Promise<LendingMarket[]> {
         const allMarkets: LendingMarket[] = [];
 
-        // Fetch from all adapters in parallel
+        // Fetch from all adapters in parallel with individual retry
         const fetchPromises = this.adapters.flatMap((adapter) => {
             const chains = adapter.getSupportedChains();
             return chains.map((chain) =>
-                adapter
-                    .fetchMarkets(collateral, chain)
-                    .catch((error) => {
-                        console.error(
-                            `Error fetching from ${adapter.getProtocolName()} on ${chain}:`,
-                            error
-                        );
-                        return [];
-                    })
+                withRetry(
+                    () => adapter.fetchMarkets(collateral, chain),
+                    { 
+                        maxRetries: 2, 
+                        baseDelay: 1500,
+                        onRetry: (attempt, error) => {
+                            console.warn(`⚠️ [${adapter.getProtocolName()}/${chain}] Retry ${attempt}: ${error.message}`);
+                        }
+                    }
+                ).catch((error) => {
+                    console.error(
+                        `Error fetching from ${adapter.getProtocolName()} on ${chain}:`,
+                        error
+                    );
+                    return [];
+                })
             );
         });
 
