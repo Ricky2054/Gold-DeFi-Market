@@ -1,6 +1,6 @@
 import type { CollateralToken, Chain, Protocol } from '../types';
 import { Select } from './ui';
-import { Coins, Link, Layers, Filter, Globe, BarChart3 } from 'lucide-react';
+import { Coins, Link, Layers, Filter } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface FiltersProps {
