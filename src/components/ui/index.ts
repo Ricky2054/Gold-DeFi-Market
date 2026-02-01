@@ -7,4 +7,3 @@ export { Select } from './Select';
 export { Metric, MetricGrid } from './Metric';
 export { Progress, ScoreGauge } from './Progress';
 export { Skeleton, MarketCardSkeleton, MarketGridSkeleton, RecommendationSkeleton } from './Skeleton';
-export { default as BlurText } from './BlurText';

@@ -11,7 +11,7 @@ import { Filters } from './components/Filters';
 import { Glossary } from './components/Glossary';
 import { Button, MarketGridSkeleton, RecommendationSkeleton } from './components/ui';
 import { config, validateConfig } from './config/env';
-import { RefreshCw, Clock, Shield, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets, ChevronDown } from 'lucide-react';
+import { RefreshCw, Clock, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets, ChevronDown } from 'lucide-react';
 import './index.css';
 
 function App() {
@@ -132,9 +132,9 @@ function App() {
                 <Trophy size={32} className="logo-icon" />
               </motion.div>
               <div className="logo-text">
-                <h1>Gold DeFi Markets</h1>
+                <h1>Goldify</h1>
                 <p className="subtitle">
-                  Compare borrowing rates across DeFi protocols using gold-backed tokens
+                  DeFi Gold Lending Analytics
                 </p>
               </div>
             </div>
@@ -170,7 +170,7 @@ function App() {
             transition={{ duration: 0.6 }}
           >
             <Trophy size={20} />
-            <span>Gold DeFi Markets</span>
+            <span>Goldify</span>
           </motion.div>
           
           <motion.h1 
@@ -376,11 +376,11 @@ function App() {
           <div className="footer-content">
             <div className="footer-main">
               <p className="footer-title">
-                <Shield size={16} />
-                Read-Only Analytics Dashboard
+                <Trophy size={16} />
+                Goldify
               </p>
               <p className="footer-subtitle">
-                No wallet connection required • Data fetched directly from blockchain
+                Real-time DeFi analytics for gold-backed lending markets
               </p>
             </div>
             <div className="footer-protocols">
