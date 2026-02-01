@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { MarketAggregator } from './services/MarketAggregator';
 import { RecommendationEngine } from './services/RecommendationEngine';
 import type { LendingMarket, CollateralToken, Chain, Protocol, MarketRecommendation } from './types';
 import { MarketCard } from './components/MarketCard';
+import { MarketDetailModal } from './components/MarketDetailModal';
+import { MarketCharts } from './components/MarketCharts';
 import { Recommendation } from './components/Recommendation';
 import { Filters } from './components/Filters';
 import { Glossary } from './components/Glossary';
-import { Button, MarketGridSkeleton, RecommendationSkeleton, BlurText } from './components/ui';
-import BlobCursor from './components/ui/BlobCursor';
-import FloatingLines from './components/ui/FloatingLines';
+import { Button, MarketGridSkeleton, RecommendationSkeleton } from './components/ui';
 import { config, validateConfig } from './config/env';
-import { RefreshCw, Clock, Shield, Zap, BookOpen, ExternalLink, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets } from 'lucide-react';
+import { RefreshCw, Clock, Shield, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets, ChevronDown } from 'lucide-react';
 import './index.css';
 
 function App() {
@@ -27,6 +27,26 @@ function App() {
   const [selectedCollateral, setSelectedCollateral] = useState<CollateralToken>(config.app.defaultCollateral);
   const [selectedChain, setSelectedChain] = useState<Chain | 'All'>('All');
   const [selectedProtocol, setSelectedProtocol] = useState<Protocol | 'All'>('All');
+
+  // Modal state
+  const [selectedMarket, setSelectedMarket] = useState<LendingMarket | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openMarketDetail = (market: LendingMarket) => {
+    setSelectedMarket(market);
+    setIsModalOpen(true);
+  };
+
+  const closeMarketDetail = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedMarket(null), 300);
+  };
+
+  const mainContentRef = useRef<HTMLElement>(null);
+
+  const scrollToContent = () => {
+    mainContentRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const aggregator = new MarketAggregator();
   const recommendationEngine = new RecommendationEngine();
@@ -53,24 +73,15 @@ function App() {
       setLoading(true);
     }
     setError(null);
-    const fetchStartTime = new Date();
-    console.log('🔄 [RAC] Starting real-time data fetch at:', fetchStartTime.toLocaleTimeString());
-    console.log('🔄 [RAC] Fetching data for collateral:', selectedCollateral);
 
     try {
       const fetchedMarkets = await aggregator.fetchAllMarkets(selectedCollateral);
       const fetchEndTime = new Date();
-      const fetchDuration = fetchEndTime.getTime() - fetchStartTime.getTime();
-
-      console.log('✅ [RAC] Data fetch completed at:', fetchEndTime.toLocaleTimeString());
-      console.log('✅ [RAC] Fetch duration:', fetchDuration, 'ms');
-      console.log('✅ [RAC] Markets fetched:', fetchedMarkets.length);
-      console.log('✅ [RAC] Market details:', fetchedMarkets);
 
       setMarkets(fetchedMarkets);
       setLastFetchTime(fetchEndTime);
     } catch (err) {
-      console.error('❌ [RAC] Error fetching markets:', err);
+      console.error('Error fetching markets:', err);
       setError('Failed to fetch market data. Please try again later.');
     } finally {
       setLoading(false);
@@ -108,40 +119,6 @@ function App() {
 
   return (
     <div className="app-wrapper">
-      {/* Floating Lines Background */}
-      <div className="floating-lines-bg">
-        <FloatingLines
-          linesGradient={['#D4AF37', '#8B6D1E', '#D4AF37']}
-          enabledWaves={['top', 'bottom']}
-          lineCount={[5, 4]}
-          lineDistance={[8, 6]}
-          animationSpeed={0.5}
-          interactive={false}
-          bendRadius={3.0}
-          bendStrength={-0.3}
-          parallax={false}
-          parallaxStrength={0.1}
-          mixBlendMode="normal"
-        />
-      </div>
-
-      {/* Blob Cursor Animation */}
-      <BlobCursor
-        blobType="circle"
-        fillColor="#D4AF37"
-        trailCount={3}
-        sizes={[30, 60, 40]}
-        innerSizes={[8, 16, 10]}
-        innerColor="rgba(255,255,255,0.9)"
-        opacities={[0.4, 0.3, 0.2]}
-        shadowColor="rgba(212, 175, 55, 0.4)"
-        shadowBlur={10}
-        useFilter={true}
-        filterStdDeviation={25}
-        fastDuration={0.08}
-        slowDuration={0.4}
-      />
-      
       {/* Header */}
       <header className="header">
         <div className="container">
@@ -183,54 +160,79 @@ function App() {
         </div>
       </header>
 
-      {/* Hero Section - Educational for Web2 users */}
-      <section className="hero-section">
-        <div className="container">
+      {/* Hero Section - Full viewport, minimal copy */}
+      <section className="hero-section-full">
+        <div className="hero-content-centered">
           <motion.div
-            className="hero-content"
-            initial={{ opacity: 0, y: 20 }}
+            className="hero-badge-minimal"
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="hero-badges">
-              <div className="hero-badge">
-                <Shield size={16} />
-                <span>No Wallet Required</span>
+            <Trophy size={20} />
+            <span>Gold DeFi Markets</span>
+          </motion.div>
+          
+          <motion.h1 
+            className="hero-headline"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+          >
+            Compare Gold-Backed
+            <br />
+            <span className="gold-gradient">DeFi Borrowing Markets</span>
+          </motion.h1>
+          
+          <motion.p 
+            className="hero-subline"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            Real-time rates across Aave, Morpho & Fluid — No wallet required
+          </motion.p>
+
+          <motion.div
+            className="hero-cta-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+          >
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={scrollToContent}
+            >
+              View Markets
+            </Button>
+            {lastFetchTime && (
+              <div className="hero-live-indicator">
+                <span className="live-dot"></span>
+                <Clock size={14} />
+                <span>Live • Updated {lastFetchTime.toLocaleTimeString()}</span>
               </div>
-              <div className="hero-badge">
-                <Zap size={16} />
-                <span>Real-Time Data</span>
-              </div>
-              <div className="hero-badge">
-                <BookOpen size={16} />
-                <span>Beginner Friendly</span>
-              </div>
-            </div>
-            <BlurText
-              text="Find the Best Rates to Borrow Against Your Gold"
-              delay={80}
-              animateBy="words"
-              direction="top"
-              className="hero-title"
-              stepDuration={0.4}
-            />
-            <p className="hero-description">
-              This dashboard helps you compare lending rates across multiple DeFi protocols. 
-              <strong> You can use your gold-backed tokens (XAUT or PAXG) as collateral</strong> to borrow stablecoins 
-              or other cryptocurrencies at competitive rates. Think of it like a pawn shop, but on the blockchain!
-            </p>
-            <div className="hero-cta">
-              <a href="https://docs.aave.com/faq/" target="_blank" rel="noopener noreferrer" className="learn-link">
-                <BookOpen size={14} />
-                Learn about DeFi Lending
-                <ExternalLink size={12} />
-              </a>
-            </div>
+            )}
           </motion.div>
         </div>
+
+        {/* Scroll Indicator */}
+        <motion.div 
+          className="scroll-indicator"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ 
+            opacity: { delay: 1.2, duration: 0.6 },
+            y: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+          }}
+          onClick={scrollToContent}
+        >
+          <span>Scroll to explore</span>
+          <ChevronDown size={20} />
+        </motion.div>
       </section>
 
-      <main className="main-content">
+      <main className="main-content" ref={mainContentRef}>
         <div className="container">
           {/* Filters */}
           <Filters
@@ -245,59 +247,67 @@ function App() {
           />
 
           {/* Loading State */}
-          <AnimatePresence mode="wait">
-            {loading && (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <RecommendationSkeleton />
-                <h2 className="section-title mb-lg">
-                  <BarChart3 size={20} className="section-icon" />
-                  Loading Markets...
-                </h2>
-                <MarketGridSkeleton count={6} />
-              </motion.div>
-            )}
+          {loading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <RecommendationSkeleton />
+              <h2 className="section-title mb-lg">
+                <BarChart3 size={20} className="section-icon" />
+                Loading Markets...
+              </h2>
+              <MarketGridSkeleton count={6} />
+            </motion.div>
+          )}
 
-            {/* Error State */}
-            {!loading && error && (
-              <motion.div
-                key="error"
-                className="error-state"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
+          {/* Error State */}
+          {!loading && error && (
+            <motion.div
+              key="error"
+              className="error-state"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="error-icon">
+                <AlertCircle size={48} />
+              </div>
+              <h3>Something went wrong</h3>
+              <p>{error}</p>
+              <Button
+                variant="primary"
+                icon={<RefreshCw size={16} />}
+                onClick={() => fetchMarkets(false)}
               >
-                <div className="error-icon">
-                  <AlertCircle size={48} />
-                </div>
-                <h3>Something went wrong</h3>
-                <p>{error}</p>
-                <Button
-                  variant="primary"
-                  icon={<RefreshCw size={16} />}
-                  onClick={() => fetchMarkets(false)}
-                >
-                  Try Again
-                </Button>
-              </motion.div>
-            )}
+                Try Again
+              </Button>
+            </motion.div>
+          )}
 
-            {/* Success State */}
-            {!loading && !error && (
-              <motion.div
-                key="content"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {/* Recommendation */}
-                {recommendations.length > 0 && (
-                  <Recommendation recommendation={recommendations[0]} />
-                )}
+          {/* Success State */}
+          {!loading && !error && (
+            <motion.div
+              key="content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              {/* Recommendation */}
+              {recommendations.length > 0 && (
+                <Recommendation recommendation={recommendations[0]} />
+              )}
+
+              {/* Market Analytics Charts */}
+              {filteredMarkets.length > 0 && (
+                <MarketCharts
+                  markets={filteredMarkets}
+                  selectedCollateral={selectedCollateral}
+                  selectedProtocol={selectedProtocol}
+                  selectedChain={selectedChain}
+                />
+              )}
 
                 {/* Markets Grid */}
                 {filteredMarkets.length > 0 ? (
@@ -318,6 +328,7 @@ function App() {
                           key={`${market.protocol}-${market.chain}-${market.collateral}-${index}`}
                           market={market}
                           index={index}
+                          onClick={() => openMarketDetail(market)}
                         />
                       ))}
                     </div>
@@ -346,9 +357,15 @@ function App() {
                 )}
               </motion.div>
             )}
-          </AnimatePresence>
         </div>
       </main>
+
+      {/* Market Detail Modal */}
+      <MarketDetailModal
+        market={selectedMarket}
+        isOpen={isModalOpen}
+        onClose={closeMarketDetail}
+      />
 
       {/* Glossary for Web2 Users */}
       <Glossary />

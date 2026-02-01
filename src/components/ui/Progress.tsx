@@ -1,5 +1,6 @@
 import * as ProgressPrimitive from '@radix-ui/react-progress';
 import { motion } from 'framer-motion';
+import GaugeChart from 'react-gauge-chart';
 
 interface ProgressProps {
     value: number;
@@ -53,7 +54,7 @@ export function Progress({
     );
 }
 
-// Score gauge for recommendation scores
+// Score gauge for recommendation scores - Speedometer style
 interface ScoreGaugeProps {
     score: number;
     maxScore?: number;
@@ -61,12 +62,6 @@ interface ScoreGaugeProps {
 }
 
 export function ScoreGauge({ score, maxScore = 100, label = 'Score' }: ScoreGaugeProps) {
-    const getScoreVariant = (score: number): 'success' | 'warning' | 'danger' => {
-        if (score >= 70) return 'success';
-        if (score >= 40) return 'warning';
-        return 'danger';
-    };
-
     const getScoreLabel = (score: number): string => {
         if (score >= 80) return 'Excellent';
         if (score >= 60) return 'Good';
@@ -74,26 +69,53 @@ export function ScoreGauge({ score, maxScore = 100, label = 'Score' }: ScoreGaug
         return 'Poor';
     };
 
+    const getScoreColor = (score: number): string => {
+        if (score >= 80) return '#22C55E';
+        if (score >= 60) return '#84CC16';
+        if (score >= 40) return '#EAB308';
+        if (score >= 20) return '#F97316';
+        return '#EF4444';
+    };
+
+    // Convert score to percentage (0-1)
+    const percent = Math.min(1, Math.max(0, score / maxScore));
+
     return (
-        <div className="ui-score-gauge">
+        <div className="ui-score-gauge-speedometer">
             <div className="score-gauge-header">
                 <span className="score-gauge-label">{label}</span>
-                <span className={`score-gauge-rating score-${getScoreVariant(score)}`}>
-                    {getScoreLabel(score)}
-                </span>
             </div>
-            <div className="score-gauge-display">
-                <motion.span
-                    className={`score-gauge-value score-${getScoreVariant(score)}`}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, type: 'spring' }}
-                >
-                    {score.toFixed(0)}
-                </motion.span>
-                <span className="score-gauge-max">/{maxScore}</span>
+            <div className="gauge-container">
+                <GaugeChart
+                    id="score-gauge"
+                    nrOfLevels={5}
+                    arcsLength={[0.2, 0.2, 0.2, 0.2, 0.2]}
+                    colors={['#EF4444', '#F97316', '#EAB308', '#84CC16', '#22C55E']}
+                    percent={percent}
+                    arcPadding={0.02}
+                    arcWidth={0.25}
+                    cornerRadius={3}
+                    needleColor="#D4AF37"
+                    needleBaseColor="#D4AF37"
+                    textColor="transparent"
+                    animate={true}
+                    animDelay={0}
+                    animateDuration={1500}
+                    formatTextValue={() => ''}
+                />
+                <div className="gauge-center-value">
+                    <motion.span
+                        className="gauge-score"
+                        style={{ color: getScoreColor(score) }}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: 0.3, type: 'spring' }}
+                    >
+                        {score.toFixed(0)}
+                    </motion.span>
+                    <span className="gauge-label">{getScoreLabel(score)}</span>
+                </div>
             </div>
-            <Progress value={score} max={maxScore} variant={getScoreVariant(score)} size="lg" />
         </div>
     );
 }
