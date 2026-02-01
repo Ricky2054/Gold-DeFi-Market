@@ -9,9 +9,12 @@ import { MarketCharts } from './components/MarketCharts';
 import { Recommendation } from './components/Recommendation';
 import { Filters } from './components/Filters';
 import { Glossary } from './components/Glossary';
+import { SavingsCalculator } from './components/SavingsCalculator';
+import { ScrollToTop } from './components/ScrollToTop';
 import { Button, MarketGridSkeleton, RecommendationSkeleton } from './components/ui';
 import { config, validateConfig } from './config/env';
-import { RefreshCw, Clock, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets, ChevronDown } from 'lucide-react';
+import { getTimeAgo, getDataFreshnessStatus } from './utils/formatting';
+import { RefreshCw, Clock, AlertCircle, Inbox, Trophy, BarChart3, Ghost, Hexagon, Droplets, ChevronDown, Github, ExternalLink, Shield } from 'lucide-react';
 import './index.css';
 
 function App() {
@@ -140,10 +143,21 @@ function App() {
             </div>
             <div className="header-actions">
               {lastFetchTime && (
-                <div className="live-indicator">
-                  <span className="live-dot"></span>
+                <div className="live-indicator-enhanced">
+                  <span 
+                    className="live-dot" 
+                    style={{ backgroundColor: getDataFreshnessStatus(lastFetchTime).color }}
+                  />
                   <Clock size={14} />
-                  <span>Updated {lastFetchTime.toLocaleTimeString()}</span>
+                  <div className="indicator-text">
+                    <span 
+                      className="indicator-status" 
+                      style={{ color: getDataFreshnessStatus(lastFetchTime).color }}
+                    >
+                      {getDataFreshnessStatus(lastFetchTime).label}
+                    </span>
+                    <span className="indicator-time">{getTimeAgo(lastFetchTime)}</span>
+                  </div>
                 </div>
               )}
               <Button
@@ -296,7 +310,13 @@ function App() {
             >
               {/* Recommendation */}
               {recommendations.length > 0 && (
-                <Recommendation recommendation={recommendations[0]} />
+                <>
+                  <Recommendation recommendation={recommendations[0]} />
+                  <SavingsCalculator 
+                    recommendation={recommendations[0]} 
+                    markets={filteredMarkets} 
+                  />
+                </>
               )}
 
               {/* Market Analytics Charts */}
@@ -371,29 +391,108 @@ function App() {
       <Glossary />
 
       {/* Footer */}
-      <footer className="footer">
+      <footer className="footer-enhanced">
         <div className="container">
-          <div className="footer-content">
-            <div className="footer-main">
-              <p className="footer-title">
-                <Trophy size={16} />
-                Goldify
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <Trophy size={24} />
+                <span>Goldify</span>
+              </div>
+              <p className="footer-description">
+                Real-time DeFi analytics for gold-backed lending markets across 
+                multiple protocols and chains.
               </p>
-              <p className="footer-subtitle">
-                Real-time DeFi analytics for gold-backed lending markets
-              </p>
-            </div>
-            <div className="footer-protocols">
-              <span>Powered by:</span>
-              <div className="protocol-list">
-                <span className="protocol-item"><Ghost size={14} /> Aave V3</span>
-                <span className="protocol-item"><Hexagon size={14} /> Morpho Blue</span>
-                <span className="protocol-item"><Droplets size={14} /> Fluid</span>
+              <div className="footer-social">
+                <a 
+                  href="https://github.com/Ricky2054/Gold-DeFi-Market" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  aria-label="View on GitHub"
+                >
+                  <Github size={20} />
+                </a>
               </div>
             </div>
+            
+            <div className="footer-section">
+              <h4>Protocols</h4>
+              <ul>
+                <li>
+                  <a href="https://aave.com" target="_blank" rel="noopener noreferrer">
+                    <Ghost size={14} />
+                    Aave V3
+                    <ExternalLink size={12} />
+                  </a>
+                </li>
+                <li>
+                  <a href="https://morpho.org" target="_blank" rel="noopener noreferrer">
+                    <Hexagon size={14} />
+                    Morpho Blue
+                    <ExternalLink size={12} />
+                  </a>
+                </li>
+                <li>
+                  <a href="https://fluid.instadapp.io" target="_blank" rel="noopener noreferrer">
+                    <Droplets size={14} />
+                    Fluid
+                    <ExternalLink size={12} />
+                  </a>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="footer-section">
+              <h4>Resources</h4>
+              <ul>
+                <li>
+                  <a href="https://github.com/Ricky2054/Gold-DeFi-Market#readme" 
+                     target="_blank" 
+                     rel="noopener noreferrer">
+                    Documentation
+                  </a>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => {
+                      const glossary = document.querySelector('.glossary-section');
+                      glossary?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Glossary
+                  </button>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="footer-section">
+              <h4>Data Sources</h4>
+              <ul>
+                <li>Ethereum Mainnet</li>
+                <li>Arbitrum One</li>
+                <li>Optimism</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="footer-disclaimer">
+            <Shield size={16} />
+            <p>
+              <strong>Disclaimer:</strong> Goldify is a read-only analytics tool. 
+              This is not financial advice. Always do your own research before 
+              making DeFi decisions. Market data is fetched from third-party sources 
+              and may contain inaccuracies or delays.
+            </p>
+          </div>
+          
+          <div className="footer-bottom">
+            <p>© 2026 Goldify • Built for the DeFi community</p>
+            <p>No wallet connection required • Fully client-side</p>
           </div>
         </div>
       </footer>
+
+      <ScrollToTop />
     </div>
   );
 }
