@@ -1,358 +1,72 @@
-# Gold DeFi Markets - Borrowing Analytics Dashboard
+# Goldify
 
-A production-quality, read-only web application that aggregates and compares borrowing markets using gold-backed tokens (XAUT & PAXG) across Aave, Morpho, and Fluid protocols.
+A read-only DeFi analytics app that compares borrowing options using gold-backed tokens (XAUT & PAXG) across Aave, Morpho, and Fluid protocols.
 
-## 🎯 Overview
+## 🔗 Links
 
-This dashboard helps DeFi users make informed decisions about where to borrow against their gold-backed collateral by providing:
+- **Live App**: [https://gold-de-fi-market.vercel.app/](https://gold-de-fi-market.vercel.app/)
+- **GitHub**: [https://github.com/Ricky2054/Gold-DeFi-Market](https://github.com/Ricky2054/Gold-DeFi-Market)
 
-- **Real-time market data** from Aave V3, Morpho Blue, and Fluid
-- **Transparent recommendations** based on deterministic scoring logic
-- **Multi-chain support** (Ethereum, Arbitrum, Optimism)
-- **Comprehensive metrics** including APR, liquidity, LTV, and liquidation thresholds
+## ✨ Features
 
-### ✅ Real-Time Blockchain Data
-
-**All market data is fetched directly from blockchain networks in real-time!**
-
-The application makes JSON-RPC calls to smart contracts on Ethereum, Arbitrum, and Optimism to retrieve:
-- Current borrow APR rates
-- Available liquidity amounts
-- Max LTV and liquidation thresholds
-- Live protocol parameters
-
-📖 **[See Real-Time Data Verification Guide](./docs/REALTIME_DATA_SUMMARY.md)** for detailed proof and verification steps.
-
-💡 **Quick Verification**: Open the app, press F12, and check the browser console for real-time data fetching logs!
-
-## 🏗️ Architecture
-
-### Clean Protocol Abstraction
-
-The application uses a **protocol adapter pattern** where each protocol implements the same interface:
-
-```typescript
-interface IProtocolAdapter {
-  fetchMarkets(collateral: CollateralToken, chain: Chain): Promise<LendingMarket[]>;
-  getProtocolName(): string;
-  getSupportedChains(): Chain[];
-}
-```
-
-This ensures:
-- **Isolation**: Each protocol has its own adapter with no cross-protocol coupling
-- **Extensibility**: New protocols can be added by implementing the interface
-- **Maintainability**: Protocol-specific logic is contained and easy to update
-
-### Core Components
-
-```
-src/
-├── types/              # Domain types and interfaces
-├── adapters/           # Protocol adapters (Aave, Morpho, Fluid)
-│   ├── IProtocolAdapter.ts
-│   ├── AaveAdapter.ts
-│   ├── MorphoAdapter.ts
-│   └── FluidAdapter.ts
-├── services/           # Business logic
-│   ├── MarketAggregator.ts
-│   └── RecommendationEngine.ts
-└── components/         # React UI components
-    ├── MarketCard.tsx
-    ├── Recommendation.tsx
-    └── Filters.tsx
-```
+- Compare borrowing rates across Aave V3, Morpho Blue, and Fluid
+- Multi-chain support: Ethereum, Arbitrum, Optimism
+- Smart recommendations based on APR, liquidity, and risk parameters
+- Transparent scoring with detailed breakdowns
+- No wallet connection required
 
 ## 📊 Data Sources
 
-### Aave V3
-- **Contracts**: Pool and ProtocolDataProvider contracts
-- **Data**: Real-time on-chain data via RPC calls
-- **Chains**: Ethereum, Arbitrum, Optimism
-- **Metrics**: LTV, liquidation threshold, borrow APR, available liquidity
+| Protocol | Method | Source |
+|----------|--------|--------|
+| **Aave V3** | RPC Calls | UiPoolDataProvider contract |
+| **Morpho Blue** | RPC Calls | Morpho contract + MarketParamsLib |
+| **Fluid** | REST API | Fluid API (api.fluid.instadapp.io) |
 
-### Morpho Blue
-- **Contracts**: Morpho Blue core contract
-- **Data**: Market-specific data from known market IDs
-- **Chains**: Ethereum
-- **Note**: Market IDs are currently hardcoded; in production, these would come from Morpho's subgraph
+All data is fetched in real-time from blockchain networks (Ethereum, Arbitrum, Optimism).
 
-### Fluid
-- **Contracts**: Fluid Liquidity and Vault contracts
-- **Data**: Vault-based lending data
-- **Chains**: Ethereum
-- **Note**: Vault addresses are currently hardcoded; in production, these would come from Fluid's API
+## 🧠 Recommendation Logic
 
-## 📈 Market Analytics Charts
+The app answers: **"Where should a user borrow from and why?"**
 
-The dashboard includes professional, research-grade charts for market analysis.
+Scoring factors (transparent & explainable):
+- **Lower APR** = Higher score
+- **Higher liquidity** = Higher score  
+- **Higher LTV** = Higher score (more capital efficient)
+- **Reasonable liquidation buffer** = Higher score
 
-### Chart Features
+## ⚠️ Key Assumptions & Limitations
 
-- **Line Charts**: Display current APR rates and trends
-- **Candlestick Charts (OHLC)**: When historical data is available, display Open/High/Low/Close for APR variations
-- **Interactive Controls**: Protocol and market selection
-- **Real-time Updates**: Charts update based on filter selections
+- **Read-only**: No wallet connection or transaction signing
+- **Collateral focus**: Only gold-backed tokens (XAUT, PAXG)
+- **Borrow assets**: USDC, USDT, DAI, WETH, WBTC
+- **Data freshness**: Relies on RPC/API availability
+- **Morpho markets**: Only includes markets with sufficient liquidity
 
-### Historical Data Sources
+## 🏗️ Design Decisions
 
-| Protocol | Data Source | Availability |
-|----------|-------------|--------------|
-| **Aave V3** | TheGraph Subgraph | ✅ Available (when indexed) |
-| **Morpho Blue** | Morpho API | ⚠️ Not publicly available |
-| **Fluid** | N/A | ❌ No historical indexing |
+1. **Protocol Adapter Pattern**: Each protocol has its own adapter implementing a common interface for clean separation
+2. **Hybrid Data Fetching**: RPC for Aave/Morpho (most accurate), REST API for Fluid (performance)
+3. **Client-side only**: No backend required - all fetching happens in browser
+4. **Deterministic scoring**: Transparent algorithm users can understand and verify
 
-### Data Assumptions & Limitations
-
-**IMPORTANT: This application does NOT fabricate or simulate historical data.**
-
-1. **Real Data Only**: All chart data comes from actual protocol APIs or subgraphs
-2. **Graceful Fallback**: When historical data is unavailable:
-   - Charts display current snapshot data only
-   - A clear warning message indicates "Historical data not available"
-   - The data source is always shown (e.g., "Source: Live Data")
-3. **OHLC Generation**: When sufficient historical data points exist, OHLC candlesticks are generated by grouping data points by day
-4. **No Interpolation**: We do not interpolate or estimate missing data points
-
-### Chart Library
-
-Uses [lightweight-charts](https://github.com/nicholasmiller1/lightweight-charts) (~40KB gzipped) for:
-- Fast rendering performance
-- Professional financial chart styling
-- Candlestick and line chart support
-- Interactive crosshair and tooltips
-
-## 🧮 Recommendation Logic
-
-The recommendation engine uses **transparent, deterministic scoring**:
-
-### Scoring Criteria (out of 100 points)
-
-**Base Score:** Starts at 100 points
-
-**Bonuses and Penalties:**
-
-1. **Liquidity** (up to 50 points)
-   - Excellent (>$1M): +10 points
-   - Good (>$10K): Base score
-   - Low (<$10K): -40 points
-
-2. **Borrow APR** (up to 45 points)
-   - Excellent (<3%): +15 points
-   - Good (3-5%): +5 points
-   - Moderate (5-10%): Base score
-   - High (>15%): -30 points
-
-3. **Safety** (up to 30 points)
-   - Safe liquidation buffer (>5%): +5 points
-   - Tight buffer (<5%): -25 points
-   - High LTV (>80%): +5 points
-   - Low LTV (<60%): -10 points
-
-4. **Protocol Reputation** (up to 10 points)
-   - Aave: +10 points (battle-tested)
-   - Morpho: +5 points (efficient)
-   - Others: Base score
-
-5. **Chain** (up to 5 points)
-   - Ethereum: +5 points (highest security)
-   - Arbitrum: +3 points (lower fees)
-   - Others: Base score
-
-**Score Range:** Final scores are capped between 0 and 100 points.
-
-### Decision Logic
-
-The system recommends the market with the **highest total score** and provides:
-- ✅ **Reasons**: Why this market is recommended
-- ⚠️ **Warnings**: Important considerations or risks
-- 📊 **Metrics**: Key numbers for informed decision-making
-
-**No black-box AI** - all scoring is transparent and explainable.
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- No wallet or blockchain account required (read-only)
-
-### Installation
+## 🚀 Run Locally
 
 ```bash
-# 1. Install dependencies
+git clone https://github.com/Ricky2054/Gold-DeFi-Market.git
+cd Gold-DeFi-Market
 npm install
-
-# 2. Set up environment variables
-cp .env.example .env
-# Edit .env with your RPC endpoints and configuration (optional - defaults work for testing)
-
-# 3. Start development server
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+## 🛠️ Tech Stack
 
-📖 **See [ENV_CONFIGURATION.md](./docs/ENV_CONFIGURATION.md)** for detailed environment setup guide.
-
-### Build for Production
-
-```bash
-npm run build
-npm run preview
-```
-
-## 🔧 Technical Stack
-
-- **Frontend**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Blockchain**: ethers.js v6
-- **Styling**: Vanilla CSS with custom design system
-- **State Management**: React hooks (useState, useEffect)
-
-## 📝 Key Design Decisions
-
-### 1. Read-Only Architecture
-- No wallet connection required
-- No transaction signing
-- No mutations or state changes
-- Focus on analytics and research
-
-### 2. Performance Optimizations
-- **Parallel fetching**: All protocol data fetched concurrently
-- **Batched RPC calls**: Minimize network requests
-- **Error isolation**: One protocol failure doesn't break others
-- **Minimal dependencies**: Only essential packages included
-
-### 3. Data Fetching Strategy
-- **Primary**: Direct RPC calls to protocol contracts
-- **Fallback**: Protocol APIs where available
-- **Avoid**: Deprecated SDKs and abandoned libraries
-
-### 4. UI/UX Principles
-- **Fast initial load**: No unnecessary loading spinners
-- **Clear hierarchy**: Important information prominently displayed
-- **Color coding**: Visual indicators for APR and liquidity levels
-- **Responsive**: Works on desktop and mobile
-
-## ⚠️ Known Limitations
-
-### Current Implementation
-
-1. **Morpho Markets**: Uses hardcoded market IDs
-   - **Production fix**: Integrate Morpho's subgraph to discover markets dynamically
-
-2. **Fluid Vaults**: Uses hardcoded vault addresses
-   - **Production fix**: Use Fluid's API or subgraph for vault discovery
-
-3. **APR Calculations**: Some protocols use simplified estimations
-   - **Production fix**: Call actual Interest Rate Model contracts
-
-4. **Collateral Caps**: Not all protocols expose this data
-   - **Production fix**: Add protocol-specific cap fetching logic
-
-5. **Historical Data**: No historical APR or liquidity trends
-   - **Production fix**: Integrate time-series data from The Graph
-
-### RPC Limitations
-
-- **Rate limiting**: Public RPCs may rate limit requests
-- **Latency**: RPC calls can be slow during network congestion
-- **Reliability**: Public endpoints may occasionally fail
-
-**Recommended for production**: Use dedicated RPC providers (Alchemy, Infura, QuickNode)
-
-## 🔐 Security Considerations
-
-This is a **read-only application** with no security risks from:
-- Wallet connections
-- Transaction signing
-- Smart contract interactions
-
-However, users should:
-- Verify data independently before making financial decisions
-- Understand that APRs and liquidity can change rapidly
-- Consider gas costs and slippage when executing actual borrows
-
-## 🛠️ Development
-
-### Adding a New Protocol
-
-1. Create adapter in `src/adapters/NewProtocolAdapter.ts`
-2. Implement `IProtocolAdapter` interface
-3. Add to `MarketAggregator` constructor
-4. Update types if needed
-
-Example:
-```typescript
-export class NewProtocolAdapter implements IProtocolAdapter {
-  async fetchMarkets(collateral: CollateralToken, chain: Chain): Promise<LendingMarket[]> {
-    // Implementation
-  }
-  
-  getProtocolName(): string {
-    return 'NewProtocol';
-  }
-  
-  getSupportedChains(): Chain[] {
-    return ['Ethereum'];
-  }
-}
-```
-
-### Modifying Recommendation Logic
-
-Edit `src/services/RecommendationEngine.ts`:
-- Adjust scoring weights
-- Add new criteria
-- Modify thresholds
-
-All changes should maintain **transparency** and **determinism**.
-
-## 📊 Data Accuracy
-
-The application fetches real-time data from blockchain networks. However:
-
-- **APRs** are variable and change based on utilization
-- **Liquidity** fluctuates with deposits and withdrawals
-- **Risk parameters** (LTV, liquidation threshold) are set by protocol governance
-
-Always verify current values before making financial decisions.
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing:
-- Clean architecture
-- Protocol abstraction
-- Transparent decision logic
-- Production-quality code
-
-Feel free to use this as a reference or starting point for your own DeFi analytics tools.
-
-## 📚 Documentation
-
-Comprehensive documentation is available in the `docs/` folder:
-
-- **[ENV_CONFIGURATION.md](./docs/ENV_CONFIGURATION.md)** - Environment variables setup guide
-- **[REALTIME_DATA_SUMMARY.md](./docs/REALTIME_DATA_SUMMARY.md)** - Real-time data verification
-- **[TECHNICAL.md](./docs/TECHNICAL.md)** - Technical architecture details
-- **[PROJECT_SUMMARY.md](./docs/PROJECT_SUMMARY.md)** - Complete project overview
-- **[DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Deployment instructions
-- **[SCORING_FIX.md](./docs/SCORING_FIX.md)** - Scoring system documentation
-- **[ENV_MIGRATION_SUMMARY.md](./docs/ENV_MIGRATION_SUMMARY.md)** - Environment migration details
-
-## 📄 License
-
-MIT License - feel free to use and modify as needed.
-
-## 🙏 Acknowledgments
-
-- **Aave**: Leading DeFi lending protocol
-- **Morpho**: Optimized lending protocol
-- **Fluid**: Next-generation DeFi protocol
-- **ethers.js**: Ethereum library
-- **Vite**: Fast build tool
+- React 19 + TypeScript
+- Vite
+- ethers.js (RPC calls)
+- ECharts (visualizations)
+- Framer Motion (animations)
 
 ---
 
-*This is a read-only analytics tool. Always do your own research before making financial decisions.*
+Built for the DeFi Gold Lending Aggregator interview task.
