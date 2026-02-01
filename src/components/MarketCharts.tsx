@@ -1,12 +1,12 @@
 /**
  * Market Comparison Charts Component
  * 
- * Bar charts for comparing DeFi markets side by side using Apache ECharts.
+ * Line charts with area fill for comparing DeFi markets using Apache ECharts.
  * 
  * Features:
- * - Bar charts comparing APR across markets
- * - Liquidity comparison charts
- * - LTV & Liquidation threshold comparisons
+ * - Smooth line charts comparing APR across markets
+ * - Liquidity comparison with gradient area fill
+ * - LTV & Liquidation threshold trend lines
  * - Protocol grouping and color coding
  */
 
@@ -121,15 +121,42 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
             },
             series: [{
                 name: 'Borrow APR',
-                type: 'bar',
-                barWidth: '60%',
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 10,
                 data: aprData,
+                lineStyle: {
+                    width: 3,
+                    color: {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 1, y2: 0,
+                        colorStops: [
+                            { offset: 0, color: '#22C55E' },
+                            { offset: 0.5, color: '#FBBF24' },
+                            { offset: 1, color: '#EF4444' }
+                        ]
+                    }
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(212, 175, 55, 0.3)' },
+                            { offset: 1, color: 'rgba(212, 175, 55, 0.02)' }
+                        ]
+                    }
+                },
                 label: {
                     show: true,
                     position: 'top',
                     color: textColor,
                     fontSize: 11,
-                    formatter: '{c}%'
+                    formatter: '{c}%',
+                    backgroundColor: 'rgba(20, 20, 30, 0.8)',
+                    padding: [4, 8],
+                    borderRadius: 4
                 }
             }]
         };
@@ -206,9 +233,30 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
             },
             series: [{
                 name: 'Liquidity',
-                type: 'bar',
-                barWidth: '60%',
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 10,
                 data: liquidityData,
+                lineStyle: {
+                    width: 3,
+                    color: '#22C55E'
+                },
+                itemStyle: {
+                    color: '#22C55E',
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0, y: 0, x2: 0, y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(34, 197, 94, 0.4)' },
+                            { offset: 1, color: 'rgba(34, 197, 94, 0.02)' }
+                        ]
+                    }
+                },
                 label: {
                     show: true,
                     position: 'top',
@@ -216,7 +264,10 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
                     fontSize: 10,
                     formatter: (params: { value: number }) => params.value >= 1000 
                         ? `$${(params.value / 1000).toFixed(1)}M` 
-                        : `$${params.value.toFixed(0)}K`
+                        : `$${params.value.toFixed(0)}K`,
+                    backgroundColor: 'rgba(20, 20, 30, 0.8)',
+                    padding: [4, 8],
+                    borderRadius: 4
                 }
             }]
         };
@@ -243,7 +294,7 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
                 backgroundColor: 'rgba(20, 20, 30, 0.95)',
                 borderColor: goldColor,
                 textStyle: { color: textColor },
-                axisPointer: { type: 'shadow' }
+                axisPointer: { type: 'cross', crossStyle: { color: goldColor } }
             },
             legend: {
                 data: ['Max LTV', 'Liq. Threshold', 'Safety Buffer'],
@@ -278,22 +329,53 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
             series: [
                 {
                     name: 'Max LTV',
-                    type: 'bar',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 8,
                     data: ltvData,
-                    itemStyle: { color: goldColor },
-                    barGap: '10%'
+                    lineStyle: { width: 3, color: goldColor },
+                    itemStyle: { color: goldColor, borderColor: '#fff', borderWidth: 2 },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(212, 175, 55, 0.3)' },
+                                { offset: 1, color: 'rgba(212, 175, 55, 0.02)' }
+                            ]
+                        }
+                    }
                 },
                 {
                     name: 'Liq. Threshold',
-                    type: 'bar',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'diamond',
+                    symbolSize: 8,
                     data: thresholdData,
-                    itemStyle: { color: '#FBBF24' }
+                    lineStyle: { width: 3, color: '#FBBF24' },
+                    itemStyle: { color: '#FBBF24', borderColor: '#fff', borderWidth: 2 }
                 },
                 {
                     name: 'Safety Buffer',
-                    type: 'bar',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'triangle',
+                    symbolSize: 8,
                     data: bufferData,
-                    itemStyle: { color: '#22C55E' }
+                    lineStyle: { width: 3, color: '#22C55E' },
+                    itemStyle: { color: '#22C55E', borderColor: '#fff', borderWidth: 2 },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(34, 197, 94, 0.2)' },
+                                { offset: 1, color: 'rgba(34, 197, 94, 0.02)' }
+                            ]
+                        }
+                    }
                 }
             ]
         };
