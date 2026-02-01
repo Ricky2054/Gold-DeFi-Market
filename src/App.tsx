@@ -310,13 +310,12 @@ function App() {
             >
               {/* Recommendation */}
               {recommendations.length > 0 && (
-                <>
-                  <Recommendation recommendation={recommendations[0]} />
-                  <SavingsCalculator 
-                    recommendation={recommendations[0]} 
-                    markets={filteredMarkets} 
-                  />
-                </>
+                <Recommendation recommendation={recommendations[0]} />
+              )}
+
+              {/* Savings Calculator - Show if there are markets to compare */}
+              {filteredMarkets.length >= 2 && (
+                <SavingsCalculator markets={filteredMarkets} />
               )}
 
               {/* Market Analytics Charts */}

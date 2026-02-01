@@ -1,40 +1,37 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, TrendingDown, Calculator } from 'lucide-react';
-import type { MarketRecommendation, LendingMarket } from '../types';
+import type { LendingMarket } from '../types';
 
 interface SavingsCalculatorProps {
-  recommendation: MarketRecommendation;
   markets: LendingMarket[];
 }
 
 export const SavingsCalculator: React.FC<SavingsCalculatorProps> = ({ 
-  recommendation, 
   markets 
 }) => {
   const [loanAmount, setLoanAmount] = useState(10000);
   
-  // Get best APR from the recommended market's borrow assets
-  const bestAPR = recommendation.market.borrowAssets.length > 0
-    ? Math.min(...recommendation.market.borrowAssets.map(a => a.borrowAPR))
-    : 0;
-  
-  // Calculate average APR across all markets
+  // Get ALL APRs from all markets
   const allAPRs = markets.flatMap(m => m.borrowAssets.map(a => a.borrowAPR)).filter(apr => apr > 0);
-  const averageAPR = allAPRs.length > 0 
-    ? allAPRs.reduce((sum, apr) => sum + apr, 0) / allAPRs.length 
-    : 0;
-  
-  // Get worst (highest) APR
-  const worstAPR = allAPRs.length > 0 ? Math.max(...allAPRs) : 0;
-  
-  const savingsVsAverage = ((averageAPR - bestAPR) / 100) * loanAmount;
-  const savingsVsWorst = ((worstAPR - bestAPR) / 100) * loanAmount;
   
   // Don't show if no meaningful data
-  if (bestAPR <= 0 || allAPRs.length < 2) {
+  if (allAPRs.length < 2) {
     return null;
   }
+  
+  // Find the ACTUAL best (lowest) APR across all markets
+  const bestAPR = Math.min(...allAPRs);
+  
+  // Calculate average APR
+  const averageAPR = allAPRs.reduce((sum, apr) => sum + apr, 0) / allAPRs.length;
+  
+  // Get worst (highest) APR
+  const worstAPR = Math.max(...allAPRs);
+  
+  // Calculate savings (always positive since best is lowest)
+  const savingsVsAverage = ((averageAPR - bestAPR) / 100) * loanAmount;
+  const savingsVsWorst = ((worstAPR - bestAPR) / 100) * loanAmount;
   
   return (
     <motion.div 
