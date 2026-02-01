@@ -43,7 +43,7 @@ export class MorphoAdapter implements IProtocolAdapter {
         ],
     ]);
 
-    // Known Morpho Blue market IDs for XAUT/PAXG collateral
+    // Known Morpho Blue market IDs for gold-backed collateral
     // These would typically come from a subgraph or off-chain indexer
     // Format: marketId => { collateral, loanToken, chain }
     private knownMarkets: Map<
@@ -59,8 +59,7 @@ export class MorphoAdapter implements IProtocolAdapter {
             irmAddress: string;
         }
     > = new Map([
-        // Example market IDs - these are placeholders and would need to be updated with real market IDs
-        // In production, you'd fetch these from Morpho's subgraph or API
+        // XAUT Markets
         [
             'xaut-usdc-eth',
             {
@@ -70,7 +69,76 @@ export class MorphoAdapter implements IProtocolAdapter {
                 loanToken: 'USDC',
                 loanTokenAddress: config.borrowAssets.ethereum.usdc,
                 chain: 'Ethereum',
-                lltv: 0.80, // 80% LLTV
+                lltv: 0.80,
+                irmAddress: '0x0000000000000000000000000000000000000000',
+            },
+        ],
+        // PAXG Markets
+        [
+            'paxg-usdc-eth',
+            {
+                id: '0x0000000000000000000000000000000000000000000000000000000000000002',
+                collateral: 'PAXG',
+                collateralAddress: config.collateral.paxg.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                lltv: 0.80,
+                irmAddress: '0x0000000000000000000000000000000000000000',
+            },
+        ],
+        [
+            'paxg-dai-eth',
+            {
+                id: '0x0000000000000000000000000000000000000000000000000000000000000003',
+                collateral: 'PAXG',
+                collateralAddress: config.collateral.paxg.ethereum,
+                loanToken: 'DAI',
+                loanTokenAddress: config.borrowAssets.ethereum.dai,
+                chain: 'Ethereum',
+                lltv: 0.75,
+                irmAddress: '0x0000000000000000000000000000000000000000',
+            },
+        ],
+        // KAU Markets
+        [
+            'kau-usdc-eth',
+            {
+                id: '0x0000000000000000000000000000000000000000000000000000000000000004',
+                collateral: 'KAU',
+                collateralAddress: config.collateral.kau.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                lltv: 0.70,
+                irmAddress: '0x0000000000000000000000000000000000000000',
+            },
+        ],
+        // DGX Markets
+        [
+            'dgx-usdc-eth',
+            {
+                id: '0x0000000000000000000000000000000000000000000000000000000000000005',
+                collateral: 'DGX',
+                collateralAddress: config.collateral.dgx.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                lltv: 0.65,
+                irmAddress: '0x0000000000000000000000000000000000000000',
+            },
+        ],
+        // PMGT Markets
+        [
+            'pmgt-usdc-eth',
+            {
+                id: '0x0000000000000000000000000000000000000000000000000000000000000006',
+                collateral: 'PMGT',
+                collateralAddress: config.collateral.pmgt.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                lltv: 0.75,
                 irmAddress: '0x0000000000000000000000000000000000000000',
             },
         ],

@@ -60,6 +60,10 @@ export class AaveAdapter implements IProtocolAdapter {
             new Map([
                 ['XAUT', config.collateral.xaut.ethereum],
                 ['PAXG', config.collateral.paxg.ethereum],
+                ['KAU', config.collateral.kau.ethereum],
+                ['PMGT', config.collateral.pmgt.ethereum],
+                ['DGX', config.collateral.dgx.ethereum],
+                ['GOLD', config.collateral.gold.ethereum],
             ]),
         ],
         [

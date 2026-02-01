@@ -467,22 +467,43 @@ export function MarketCharts({ markets, selectedProtocol, selectedChain }: Marke
             <div className="chart-metrics-summary">
                 <div className="metric-card">
                     <span className="metric-label">Best APR</span>
-                    <span className="metric-value success">
-                        {Math.min(...filteredMarkets.flatMap(m => m.borrowAssets.map(a => a.borrowAPR))).toFixed(2)}%
+                    <span className={`metric-value ${(() => {
+                        const allAPRs = filteredMarkets.flatMap(m => m.borrowAssets.map(a => a.borrowAPR)).filter(apr => apr > 0);
+                        return allAPRs.length > 0 ? 'success' : 'not-listed';
+                    })()}`}>
+                        {(() => {
+                            const allAPRs = filteredMarkets.flatMap(m => m.borrowAssets.map(a => a.borrowAPR)).filter(apr => apr > 0);
+                            return allAPRs.length > 0 ? `${Math.min(...allAPRs).toFixed(2)}%` : 'Not Listed';
+                        })()}
                     </span>
                 </div>
                 <div className="metric-card">
                     <span className="metric-label">Total Liquidity</span>
-                    <span className="metric-value">
-                        ${(filteredMarkets.reduce((sum, m) => 
-                            sum + m.borrowAssets.reduce((s, a) => s + a.availableLiquidity, 0), 0) / 1000000
-                        ).toFixed(2)}M
+                    <span className={`metric-value ${(() => {
+                        const total = filteredMarkets.reduce((sum, m) => 
+                            sum + m.borrowAssets.reduce((s, a) => s + a.availableLiquidity, 0), 0);
+                        return total > 0 ? '' : 'not-listed';
+                    })()}`}>
+                        {(() => {
+                            const total = filteredMarkets.reduce((sum, m) => 
+                                sum + m.borrowAssets.reduce((s, a) => s + a.availableLiquidity, 0), 0);
+                            if (total <= 0) return 'Not Listed';
+                            if (total >= 1000000) return `$${(total / 1000000).toFixed(2)}M`;
+                            if (total >= 1000) return `$${(total / 1000).toFixed(0)}K`;
+                            return `$${total.toFixed(0)}`;
+                        })()}
                     </span>
                 </div>
                 <div className="metric-card">
                     <span className="metric-label">Highest LTV</span>
-                    <span className="metric-value">
-                        {(Math.max(...filteredMarkets.map(m => m.maxLTV)) * 100).toFixed(0)}%
+                    <span className={`metric-value ${(() => {
+                        const maxLTV = Math.max(...filteredMarkets.map(m => m.maxLTV));
+                        return maxLTV > 0 ? '' : 'not-listed';
+                    })()}`}>
+                        {(() => {
+                            const maxLTV = Math.max(...filteredMarkets.map(m => m.maxLTV));
+                            return maxLTV > 0 ? `${(maxLTV * 100).toFixed(0)}%` : 'Not Listed';
+                        })()}
                     </span>
                 </div>
                 <div className="metric-card">

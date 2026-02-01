@@ -13,6 +13,7 @@ export function Recommendation({ recommendation }: RecommendationProps) {
     const [showDetails, setShowDetails] = useState(false);
 
     const formatLiquidity = (amount: number): string => {
+        if (amount <= 0) return 'Not Listed';
         if (amount >= 1000000) {
             return `$${(amount / 1000000).toFixed(2)}M`;
         }
@@ -21,6 +22,18 @@ export function Recommendation({ recommendation }: RecommendationProps) {
         }
         return `$${amount.toFixed(0)}`;
     };
+
+    const formatAPR = (apr: number): string => {
+        if (apr <= 0) return 'N/A';
+        return `${apr.toFixed(2)}%`;
+    };
+
+    const formatPercentage = (value: number): string => {
+        if (value <= 0) return 'Not Listed';
+        return `${(value * 100).toFixed(0)}%`;
+    };
+
+    const isListed = market.maxLTV > 0 && borrowAsset.borrowAPR > 0;
 
     return (
         <motion.div
@@ -65,39 +78,46 @@ export function Recommendation({ recommendation }: RecommendationProps) {
                     {/* What This Means Section - For Web2 Users */}
                     <div className="recommendation-explainer">
                         <h4 className="explainer-title"><Lightbulb size={16} /> What This Means (Simple Terms)</h4>
-                        <p className="explainer-text">
-                            You can deposit your <strong>{market.collateral}</strong> gold token as security, 
-                            and borrow <strong>{borrowAsset.symbol}</strong> at a <strong>{borrowAsset.borrowAPR.toFixed(2)}% yearly interest rate</strong>. 
-                            This is like getting a loan at a bank, but using your gold as collateral instead of a credit check.
-                        </p>
+                        {isListed ? (
+                            <p className="explainer-text">
+                                You can deposit your <strong>{market.collateral}</strong> gold token as security, 
+                                and borrow <strong>{borrowAsset.symbol}</strong> at a <strong>{formatAPR(borrowAsset.borrowAPR)} yearly interest rate</strong>. 
+                                This is like getting a loan at a bank, but using your gold as collateral instead of a credit check.
+                            </p>
+                        ) : (
+                            <p className="explainer-text not-listed-warning">
+                                ⚠️ <strong>{market.collateral}</strong> is currently <strong>not listed as collateral</strong> on {market.protocol}. 
+                                This token cannot be used for borrowing on this protocol at this time.
+                            </p>
+                        )}
                     </div>
 
                     <MetricGrid columns={4} className="recommendation-metrics">
                         <Metric
                             label="Borrow Rate"
-                            value={`${borrowAsset.borrowAPR.toFixed(2)}%`}
-                            subValue="per year"
-                            variant="success"
+                            value={formatAPR(borrowAsset.borrowAPR)}
+                            subValue={borrowAsset.borrowAPR > 0 ? "per year" : "unavailable"}
+                            variant={borrowAsset.borrowAPR > 0 ? "success" : "default"}
                             icon={<TrendingUp size={14} />}
                             tooltip="The yearly interest rate you'll pay on borrowed funds. Lower is better."
                         />
                         <Metric
                             label="Available"
                             value={formatLiquidity(borrowAsset.availableLiquidity)}
-                            subValue="to borrow"
+                            subValue={borrowAsset.availableLiquidity > 0 ? "to borrow" : ""}
                             icon={<Droplets size={14} />}
                             tooltip="The total amount available to borrow. Higher liquidity means larger loans are possible."
                         />
                         <Metric
                             label="Max LTV"
-                            value={`${(market.maxLTV * 100).toFixed(0)}%`}
-                            subValue="borrow limit"
+                            value={formatPercentage(market.maxLTV)}
+                            subValue={market.maxLTV > 0 ? "borrow limit" : ""}
                             icon={<Target size={14} />}
                             tooltip="The maximum you can borrow vs your collateral. 75% means you can borrow up to $75 for every $100 deposited."
                         />
                         <Metric
                             label="Safety Buffer"
-                            value={`${((market.liquidationThreshold - market.maxLTV) * 100).toFixed(1)}%`}
+                            value={market.maxLTV > 0 ? `${((market.liquidationThreshold - market.maxLTV) * 100).toFixed(1)}%` : 'N/A'}
                             subValue="before liquidation"
                             variant="success"
                             icon={<Shield size={14} />}

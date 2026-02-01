@@ -28,12 +28,32 @@ export function Filters({
         { 
             value: 'XAUT', 
             label: 'XAUT (Tether Gold)',
-            description: 'Gold-backed stablecoin by Tether'
+            description: 'Each token = 1 troy oz gold (Tether)'
         },
         { 
             value: 'PAXG', 
             label: 'PAXG (Paxos Gold)',
-            description: 'Gold-backed token by Paxos'
+            description: 'Each token = 1 troy oz gold (Paxos)'
+        },
+        { 
+            value: 'KAU', 
+            label: 'KAU (Kinesis Gold)',
+            description: 'Each token = 1 gram gold (Kinesis)'
+        },
+        { 
+            value: 'PMGT', 
+            label: 'PMGT (Perth Mint)',
+            description: 'Government-backed digital gold (Australia)'
+        },
+        { 
+            value: 'DGX', 
+            label: 'DGX (Digix Gold)',
+            description: 'Each token = 1 gram 99.99% LBMA gold'
+        },
+        { 
+            value: 'GOLD', 
+            label: 'GOLD (Compound)',
+            description: 'Tokenized gold for DeFi'
         }
     ];
 

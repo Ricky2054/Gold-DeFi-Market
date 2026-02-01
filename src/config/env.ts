@@ -47,6 +47,18 @@ interface EnvConfig {
             ethereum: string;
             arbitrum: string;
         };
+        kau: {
+            ethereum: string;
+        };
+        pmgt: {
+            ethereum: string;
+        };
+        dgx: {
+            ethereum: string;
+        };
+        gold: {
+            ethereum: string;
+        };
     };
 
     // Borrow Assets
@@ -150,6 +162,18 @@ export const config: EnvConfig = {
         paxg: {
             ethereum: getEnvVar('VITE_PAXG_ETHEREUM', '0x45804880De22913dAFE09f4980848ECE6EcbAf78'),
             arbitrum: getEnvVar('VITE_PAXG_ARBITRUM', '0xfEb4DfC8C4Cf7Ed305bb08065D08eC6ee6728429'),
+        },
+        kau: {
+            ethereum: getEnvVar('VITE_KAU_ETHEREUM', '0xf9b4DEFdDe04fe18F5ee6456607F8A2eC9fF6A75'),
+        },
+        pmgt: {
+            ethereum: getEnvVar('VITE_PMGT_ETHEREUM', '0xAFFCDd96531bCd66faED95FC61e443D08F79eFEf'),
+        },
+        dgx: {
+            ethereum: getEnvVar('VITE_DGX_ETHEREUM', '0x4f3AfEC4E5a3F2A6a1A411DEF7D7dFe50eE057bF'),
+        },
+        gold: {
+            ethereum: getEnvVar('VITE_GOLD_ETHEREUM', '0x0000000000000000000000000000000000000000'),
         },
     },
 

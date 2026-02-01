@@ -84,6 +84,7 @@ export function ScoreGauge({ score, maxScore = 100, label = 'Score' }: ScoreGaug
         <div className="ui-score-gauge-speedometer">
             <div className="score-gauge-header">
                 <span className="score-gauge-label">{label}</span>
+                <span className="score-gauge-value" style={{ color: getScoreColor(score) }}>{score.toFixed(0)}</span>
             </div>
             <div className="gauge-container">
                 <GaugeChart
@@ -103,17 +104,10 @@ export function ScoreGauge({ score, maxScore = 100, label = 'Score' }: ScoreGaug
                     animateDuration={1500}
                     formatTextValue={() => ''}
                 />
-                <div className="gauge-center-value">
-                    <motion.span
-                        className="gauge-score"
-                        style={{ color: getScoreColor(score) }}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3, type: 'spring' }}
-                    >
-                        {score.toFixed(0)}
-                    </motion.span>
-                    <span className="gauge-label">{getScoreLabel(score)}</span>
+                <div className="gauge-bottom-label">
+                    <span className="gauge-label" style={{ color: getScoreColor(score) }}>
+                        {getScoreLabel(score)}
+                    </span>
                 </div>
             </div>
         </div>

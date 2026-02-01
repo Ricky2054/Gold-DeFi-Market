@@ -38,7 +38,7 @@ export class FluidAdapter implements IProtocolAdapter {
         ],
     ]);
 
-    // Known Fluid vaults for XAUT/PAXG collateral
+    // Known Fluid vaults for gold-backed collateral
     // In production, these would come from Fluid's API or subgraph
     private knownVaults: Map<
         string,
@@ -53,7 +53,7 @@ export class FluidAdapter implements IProtocolAdapter {
             liquidationThreshold: number;
         }
     > = new Map([
-        // Example vaults - these are placeholders
+        // XAUT Vaults
         [
             'xaut-usdc-vault',
             {
@@ -68,6 +68,20 @@ export class FluidAdapter implements IProtocolAdapter {
             },
         ],
         [
+            'xaut-dai-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000007',
+                collateral: 'XAUT',
+                collateralAddress: config.collateral.xaut.ethereum,
+                loanToken: 'DAI',
+                loanTokenAddress: config.borrowAssets.ethereum.dai,
+                chain: 'Ethereum',
+                maxLTV: 0.70,
+                liquidationThreshold: 0.78,
+            },
+        ],
+        // PAXG Vaults
+        [
             'paxg-usdc-vault',
             {
                 vaultAddress: '0x0000000000000000000000000000000000000002',
@@ -78,6 +92,74 @@ export class FluidAdapter implements IProtocolAdapter {
                 chain: 'Ethereum',
                 maxLTV: 0.75,
                 liquidationThreshold: 0.80,
+            },
+        ],
+        [
+            'paxg-weth-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000008',
+                collateral: 'PAXG',
+                collateralAddress: config.collateral.paxg.ethereum,
+                loanToken: 'WETH',
+                loanTokenAddress: config.borrowAssets.ethereum.weth,
+                chain: 'Ethereum',
+                maxLTV: 0.65,
+                liquidationThreshold: 0.75,
+            },
+        ],
+        // KAU Vaults
+        [
+            'kau-usdc-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000003',
+                collateral: 'KAU',
+                collateralAddress: config.collateral.kau.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                maxLTV: 0.65,
+                liquidationThreshold: 0.72,
+            },
+        ],
+        // DGX Vaults
+        [
+            'dgx-usdc-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000004',
+                collateral: 'DGX',
+                collateralAddress: config.collateral.dgx.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                maxLTV: 0.60,
+                liquidationThreshold: 0.70,
+            },
+        ],
+        // PMGT Vaults
+        [
+            'pmgt-usdc-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000005',
+                collateral: 'PMGT',
+                collateralAddress: config.collateral.pmgt.ethereum,
+                loanToken: 'USDC',
+                loanTokenAddress: config.borrowAssets.ethereum.usdc,
+                chain: 'Ethereum',
+                maxLTV: 0.70,
+                liquidationThreshold: 0.78,
+            },
+        ],
+        [
+            'pmgt-dai-vault',
+            {
+                vaultAddress: '0x0000000000000000000000000000000000000009',
+                collateral: 'PMGT',
+                collateralAddress: config.collateral.pmgt.ethereum,
+                loanToken: 'DAI',
+                loanTokenAddress: config.borrowAssets.ethereum.dai,
+                chain: 'Ethereum',
+                maxLTV: 0.68,
+                liquidationThreshold: 0.76,
             },
         ],
     ]);

@@ -1265,6 +1265,7 @@ strong {
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 8px;
   width: 100%;
 }
 
@@ -1276,10 +1277,16 @@ strong {
   font-weight: 600;
 }
 
+.ui-score-gauge-speedometer .score-gauge-value {
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 .gauge-container {
   position: relative;
   width: 180px;
-  height: 110px;
+  height: 100px;
   margin-top: -4px;
 }
 
@@ -1302,6 +1309,21 @@ strong {
   align-items: center;
   gap: 4px;
   z-index: 10;
+}
+
+.gauge-bottom-label {
+  text-align: center;
+  margin-top: 4px;
+}
+
+.gauge-bottom-label .gauge-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
 }
 
 .gauge-score {
@@ -1844,6 +1866,18 @@ strong {
   color: var(--gold-primary);
 }
 
+.explainer-text.not-listed-warning {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+}
+
+.explainer-text.not-listed-warning strong {
+  color: var(--danger);
+}
+
 .recommendation-metrics {
   margin-bottom: var(--spacing-lg);
   padding: var(--spacing-md);
@@ -2035,6 +2069,42 @@ strong {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
+}
+
+.market-stat-value.not-listed {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Not Listed Badge */
+.not-listed-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--danger);
+}
+
+/* Not Listed/Not Available States */
+.not-listed,
+.metric-value.not-listed {
+  color: var(--text-tertiary) !important;
+  font-style: italic;
+  font-size: 0.85rem !important;
+}
+
+.market-best-apr.not-available {
+  opacity: 0.6;
+}
+
+.market-best-apr.not-available .apr-value {
+  color: var(--text-tertiary);
 }
 
 .market-safety-badge {
@@ -2437,6 +2507,34 @@ strong {
 .modal-cta-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+.modal-footer-links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.modal-link-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: var(--gold-primary);
+  font-weight: 500;
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.modal-link-button:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
 }
 
 .modal-secondary-button {

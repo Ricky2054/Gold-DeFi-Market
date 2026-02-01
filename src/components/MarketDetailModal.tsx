@@ -46,23 +46,61 @@ export function MarketDetailModal({ market, isOpen, onClose }: MarketDetailModal
 
     const safetyLevel = getSafetyLevel(liquidationBuffer);
 
-    const getProtocolUrl = (protocol: string, chain: string): string => {
-        const urls: Record<string, Record<string, string>> = {
-            'AAVE': {
-                'Ethereum': 'https://app.aave.com/?marketName=proto_mainnet_v3',
-                'Arbitrum': 'https://app.aave.com/?marketName=proto_arbitrum_v3',
-                'Optimism': 'https://app.aave.com/?marketName=proto_optimism_v3',
-                'Polygon': 'https://app.aave.com/?marketName=proto_polygon_v3',
-            },
-            'MORPHO': {
-                'Ethereum': 'https://app.morpho.org/',
-            },
-            'FLUID': {
-                'Ethereum': 'https://app.fluid.io/',
-            },
+    // Generate direct links to the specific asset page on each protocol
+    const getProtocolAssetUrl = (protocol: string, chain: string, _collateral: string, collateralAddress: string): string => {
+        const chainToAaveMarket: Record<string, string> = {
+            'Ethereum': 'proto_mainnet_v3',
+            'Arbitrum': 'proto_arbitrum_v3',
+            'Optimism': 'proto_optimism_v3',
+            'Polygon': 'proto_polygon_v3',
         };
-        return urls[protocol]?.[chain] || '#';
+
+        switch (protocol.toUpperCase()) {
+            case 'AAVE':
+                // Direct link to Aave reserve page for the specific asset
+                // Format: https://app.aave.com/reserve-overview/?underlyingAsset=ADDRESS&marketName=MARKET
+                return `https://app.aave.com/reserve-overview/?underlyingAsset=${collateralAddress.toLowerCase()}&marketName=${chainToAaveMarket[chain] || 'proto_mainnet_v3'}`;
+            
+            case 'MORPHO':
+                // Morpho markets page with search
+                return `https://app.morpho.org/`;
+            
+            case 'FLUID':
+                // Fluid lending page
+                return `https://fluid.instadapp.io/lending`;
+            
+            default:
+                return '#';
+        }
     };
+
+    // Get explorer URL for the collateral token contract
+    const getExplorerUrl = (chain: string, address: string): string => {
+        const explorers: Record<string, string> = {
+            'Ethereum': 'https://etherscan.io/token/',
+            'Arbitrum': 'https://arbiscan.io/token/',
+            'Optimism': 'https://optimistic.etherscan.io/token/',
+            'Polygon': 'https://polygonscan.com/token/',
+        };
+        return `${explorers[chain] || explorers['Ethereum']}${address}`;
+    };
+
+    // Get CoinGecko/CoinMarketCap link for the token
+    const getTokenInfoUrl = (collateral: string): string => {
+        const tokenLinks: Record<string, string> = {
+            'XAUT': 'https://www.coingecko.com/en/coins/tether-gold',
+            'PAXG': 'https://www.coingecko.com/en/coins/pax-gold',
+            'KAU': 'https://www.coingecko.com/en/coins/kinesis-gold',
+            'PMGT': 'https://www.coingecko.com/en/coins/perth-mint-gold-token',
+            'DGX': 'https://www.coingecko.com/en/coins/digix-gold',
+            'GOLD': 'https://www.coingecko.com/en/coins/gold',
+        };
+        return tokenLinks[collateral] || 'https://www.coingecko.com/';
+    };
+
+    const protocolUrl = getProtocolAssetUrl(market.protocol, market.chain, market.collateral, market.collateralAddress);
+    const explorerUrl = getExplorerUrl(market.chain, market.collateralAddress);
+    const tokenInfoUrl = getTokenInfoUrl(market.collateral);
 
     return (
         <AnimatePresence>
@@ -217,15 +255,35 @@ export function MarketDetailModal({ market, isOpen, onClose }: MarketDetailModal
 
                         {/* Footer */}
                         <div className="modal-footer">
-                            <a 
-                                href={getProtocolUrl(market.protocol, market.chain)} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="modal-cta-button"
-                            >
-                                Open on {market.protocol}
-                                <ExternalLink size={16} />
-                            </a>
+                            <div className="modal-footer-links">
+                                <a 
+                                    href={protocolUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="modal-cta-button"
+                                >
+                                    View on {market.protocol}
+                                    <ExternalLink size={16} />
+                                </a>
+                                <a 
+                                    href={explorerUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="modal-link-button"
+                                >
+                                    Token Contract
+                                    <ExternalLink size={14} />
+                                </a>
+                                <a 
+                                    href={tokenInfoUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="modal-link-button"
+                                >
+                                    Price Info
+                                    <ExternalLink size={14} />
+                                </a>
+                            </div>
                             <button className="modal-secondary-button" onClick={onClose}>
                                 Close
                             </button>

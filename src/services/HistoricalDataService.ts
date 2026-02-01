@@ -64,6 +64,30 @@ const GOLD_TOKEN_ADDRESSES: Record<CollateralToken, Record<Chain, string | null>
         'Optimism': null,
         'Polygon': null,
     },
+    'KAU': {
+        'Ethereum': '0xf9b4DEFdDe04fe18F5ee6456607F8A2eC9fF6A75',
+        'Arbitrum': null,
+        'Optimism': null,
+        'Polygon': null,
+    },
+    'PMGT': {
+        'Ethereum': '0xAFFCDd96531bCd66faED95FC61e443D08F79eFEf',
+        'Arbitrum': null,
+        'Optimism': null,
+        'Polygon': null,
+    },
+    'DGX': {
+        'Ethereum': '0x4f3AfEC4E5a3F2A6a1A411DEF7D7dFe50eE057bF',
+        'Arbitrum': null,
+        'Optimism': null,
+        'Polygon': null,
+    },
+    'GOLD': {
+        'Ethereum': '0x0000000000000000000000000000000000000000',
+        'Arbitrum': null,
+        'Optimism': null,
+        'Polygon': null,
+    },
 };
 
 export class HistoricalDataService {

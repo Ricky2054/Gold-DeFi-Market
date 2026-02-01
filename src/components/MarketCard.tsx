@@ -39,10 +39,23 @@ export function MarketCard({ market, index = 0, onClick }: MarketCardProps) {
     };
 
     const formatLiquidity = (amount: number): string => {
+        if (amount <= 0) return 'Not Listed';
         if (amount >= 1000000) return `$${(amount / 1000000).toFixed(1)}M`;
         if (amount >= 1000) return `$${(amount / 1000).toFixed(0)}K`;
         return `$${amount.toFixed(0)}`;
     };
+
+    const formatAPR = (apr: number): string => {
+        if (apr <= 0) return 'N/A';
+        return `${apr.toFixed(2)}%`;
+    };
+
+    const formatPercentage = (value: number): string => {
+        if (value <= 0) return 'Not Listed';
+        return `${(value * 100).toFixed(0)}%`;
+    };
+
+    const isListed = market.maxLTV > 0 && market.liquidationThreshold > 0;
 
     const safetyLevel = getSafetyLevel(liquidationBuffer);
     
@@ -81,13 +94,24 @@ export function MarketCard({ market, index = 0, onClick }: MarketCardProps) {
                     <div className="market-stats-row">
                         <div className="market-stat">
                             <span className="market-stat-label">Max LTV</span>
-                            <span className="market-stat-value">{(market.maxLTV * 100).toFixed(0)}%</span>
+                            <span className={`market-stat-value ${!isListed ? 'not-listed' : ''}`}>
+                                {formatPercentage(market.maxLTV)}
+                            </span>
                         </div>
                         <div className="market-stat">
                             <span className="market-stat-label">Liq. Threshold</span>
-                            <span className="market-stat-value">{(market.liquidationThreshold * 100).toFixed(0)}%</span>
+                            <span className={`market-stat-value ${!isListed ? 'not-listed' : ''}`}>
+                                {formatPercentage(market.liquidationThreshold)}
+                            </span>
                         </div>
                     </div>
+
+                    {/* Not Listed Warning */}
+                    {!isListed && (
+                        <div className="not-listed-badge">
+                            <span>⚠️ Not Listed as Collateral</span>
+                        </div>
+                    )}
 
                     {/* Safety Badge */}
                     <div className={`market-safety-badge ${safetyLevel.variant}`}>
@@ -103,13 +127,15 @@ export function MarketCard({ market, index = 0, onClick }: MarketCardProps) {
                             <span>Best Rate Available</span>
                         </div>
                         <div className="market-preview-content">
-                            <div className={`market-best-apr ${getAPRColor(bestAPR)}`}>
+                            <div className={`market-best-apr ${bestAPR > 0 ? getAPRColor(bestAPR) : 'not-available'}`}>
                                 <TrendingDown size={16} />
-                                <span className="apr-value">{bestAPR.toFixed(2)}%</span>
+                                <span className="apr-value">{formatAPR(bestAPR)}</span>
                                 <span className="apr-label">APR</span>
                             </div>
                             <div className="market-liquidity">
-                                <span className="liquidity-value">{formatLiquidity(totalLiquidity)}</span>
+                                <span className={`liquidity-value ${totalLiquidity <= 0 ? 'not-listed' : ''}`}>
+                                    {formatLiquidity(totalLiquidity)}
+                                </span>
                                 <span className="liquidity-label">Total Liquidity</span>
                             </div>
                         </div>
